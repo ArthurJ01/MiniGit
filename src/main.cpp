@@ -40,15 +40,26 @@ void init(char* argv[]) {
 
     const char* path = argv[2];
 
+    std::string pathstr = path;
+    pathstr += "/.git";
+    std::string pathstrObjects = pathstr + "/objects";
+
     if (!is_relative_path(path) && !is_absolute_path(path)) {
         std::cout << "Please provide a valid Windows path\n";
         return;
     }
-    if (_mkdir(path) == 0) {
-        std::cout << "Directory created successfully\n";
+    if (_mkdir(pathstr.c_str()) == 0) {
+        std::cout << ".git directory created successfully\n";
     } else {
         std::perror("mkdir failed");
     }
+    if (_mkdir(pathstrObjects.c_str()) == 0) {
+        std::cout << "Object directory created successfully\n";
+    } else {
+        std::perror("mkdir failed");
+    }
+    
+
 }
 
 
