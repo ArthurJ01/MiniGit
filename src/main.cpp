@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <filesystem>
 #include <string.h>
 #include <direct.h>
 
@@ -43,22 +45,42 @@ void init(char* argv[]) {
     std::string pathstr = path;
     pathstr += "/.git";
     std::string pathstrObjects = pathstr + "/objects";
+    std::string headFilePath = pathstr + "/HEAD";
+    std::string indexFilePath = pathstr + "/index";
 
     if (!is_relative_path(path) && !is_absolute_path(path)) {
         std::cout << "Please provide a valid Windows path\n";
         return;
     }
+
     if (_mkdir(pathstr.c_str()) == 0) {
         std::cout << ".git directory created successfully\n";
     } else {
         std::perror("mkdir failed");
     }
+
     if (_mkdir(pathstrObjects.c_str()) == 0) {
         std::cout << "Object directory created successfully\n";
     } else {
         std::perror("mkdir failed");
     }
     
+
+    if(std::filesystem::exists(headFilePath)){
+        std::cout << "HEAD file already exists";
+    }
+    else{
+        std::ofstream headFile (headFilePath);
+        headFile << "This is the head file\n" << std::endl;
+    }
+
+    if(std::filesystem::exists(indexFilePath)){
+        std::cout << "index file already exists";
+    }
+    else{
+        std::ofstream headFile (indexFilePath);
+        headFile << "This is the index file\n" << std::endl;
+    }
 
 }
 
