@@ -2,7 +2,13 @@
 
 #include "init.hpp"
 
+void hashObject(){
 
+}
+
+void add(char* argv[]){
+
+}
 
 int main(int argc, char* argv[]){
 
@@ -18,6 +24,7 @@ int main(int argc, char* argv[]){
         }
         else if(command == "add"){
             std::cout << "adding file... \n";
+            add(argv);
         }
         else if(command == "commit"){
             std::cout << "commiting files... \n";
