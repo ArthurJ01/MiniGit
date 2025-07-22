@@ -1,9 +1,35 @@
 #include <iostream>
+#include <sstream>
+#include <fstream>
+#include <string>
 
 #include "init.hpp"
+#include "sha1.hpp"
 
-void hashObject(){
+struct FileBlob {
+    std::string filename;
+    std::string content;
+};
 
+std::string hashObject(const FileBlob& blob){
+
+    std::stringstream os;
+    os << "filename: " << blob.filename << "\n";
+    os << "content: " << blob.content << "\n";
+
+    SHA1 sha1;
+    sha1.update(os.str());
+    return sha1.final();
+}
+
+std::string serializeFile(const std::string& filePath){
+    std::ifstream file(filePath, std::ios::in | std::ios::binary);
+    if(!file){
+        throw std::runtime_error("Failed to open file: " + filePath);
+    }
+    std::ostringstream content;
+    content << file.rdbuf();
+    return content.str();
 }
 
 void add(char* argv[]){
