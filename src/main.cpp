@@ -7,19 +7,29 @@
 #include "init.hpp"
 #include "sha1.hpp"
 
+enum class FileType{BLOB, TREE};
+
 struct FileData {
-    std::string fileName;
+    FileType fileType;
     std::string content;
 
-    FileData(const std::string& fileName, const std::string& content)
-        : fileName(fileName), content(content) {}
+    FileData(const FileType& fileType, const std::string& content)
+        : fileType(fileType), content(content) {}
 };
 
-std::string hashObject(const FileData& blob){
+std::string hashObject(const FileData& fileData){
 
     std::stringstream os;
-    os << "filename: " << blob.fileName << "\n";
-    os << "content: " << blob.content << "\n";
+    std::string fileType;
+    if (fileData.fileType == FileType::BLOB){
+        fileType = "blob ";
+    }
+    else if (fileData.fileType == FileType::TREE){
+        fileType = "tree ";
+    }
+
+    os << fileType << fileData.content.size() << '\0';
+    os << fileData.content;
 
     SHA1 sha1;
     sha1.update(os.str());
@@ -42,9 +52,9 @@ void add(char* argv[]){
         return;
     }
     std::filesystem::path filePath = argv[2];
-    std::string fileName = filePath.filename().string();
+    FileType fileType = FileType::BLOB;
     std::string serializedFile = serializeFile(filePath);
-    FileData fileData (fileName, serializedFile);
+    FileData fileData (fileType, serializedFile);
     std::string blob = hashObject(fileData);
 }
 
