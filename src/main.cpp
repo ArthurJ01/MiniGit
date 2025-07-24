@@ -15,6 +15,18 @@ std::string hashObject(const std::string& fileData){
     return sha1.final();
 }
 
+std::filesystem::path findRepositoryRoot(std::filesystem::path start) {
+    while (!start.empty()) {
+        if (std::filesystem::exists(start / ".minigit")) {
+            return start;
+        }
+        if(start == start.root_path()) break;
+        start = start.parent_path();
+    }
+    throw std::runtime_error("Not inside a valid repository");
+}
+
+//turn file into "blob (or tree) <size>\0" + file contents as a string
 const std::string serializeFile(const std::filesystem::path& filePath, const FileType& fileType){
     std::ifstream file(filePath, std::ios::in | std::ios::binary);
     if(!file){
@@ -45,15 +57,16 @@ void add(char* argv[]){
         return;
     }
     std::filesystem::path filePath = argv[2];
-
-    // TODO: this should be the objects folder path
-    std::filesystem::path objectFolderPath = filePath;
+    std::filesystem::path repositoryRoot = findRepositoryRoot(filePath);
+    std::filesystem::path objectFolderPath = repositoryRoot / ".minigit" /"objects";
 
     std::string hashedObject;
 
+    //check contents of directory and do add to each file
     if(std::filesystem::is_directory(filePath)){
         std::string serializedContent = serializeFile(filePath, FileType::TREE);
     }
+    //create file and done
     else{
         std::string serializedContent = serializeFile(filePath, FileType::BLOB);
         hashedObject = hashObject(serializedContent);
@@ -63,12 +76,13 @@ void add(char* argv[]){
         if(!std::filesystem::exists(objectPath)){
             std::ofstream file(objectPath, std::ios::binary);
             if (!file) {
-                std::cerr << "Failed to create HEAD file\n";
+                std::cerr << "Failed to create object file\n" << objectPath;
             } else {
                 file << serializedContent;
             }
         }
     }
+    //add to index
 }
 
 int main(int argc, char* argv[]){
