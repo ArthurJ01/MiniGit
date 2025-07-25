@@ -26,7 +26,7 @@ std::filesystem::path findRepositoryRoot(std::filesystem::path start) {
 const std::string serializeFile(const std::filesystem::path& filePath, const FileType& fileType){
     std::ifstream file(filePath, std::ios::in | std::ios::binary);
     if(!file){
-        throw std::runtime_error("Failed to open file: " + filePath.string());
+        throw std::runtime_error("Serializer failed to open file: " + filePath.string());
     }
     std::ostringstream content;
     std::ostringstream serializedFile;
