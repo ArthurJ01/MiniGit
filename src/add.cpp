@@ -8,6 +8,26 @@
 #include "util.hpp"
 #include "add.hpp"
 
+void addToIndexFile(const std::filesystem::path& filePath, const std::string& hash, const std::filesystem::path& repositoryRoot){
+    std::filesystem::path indexPath = repositoryRoot / ".minigit" / "index";
+    std::stringstream indexEntry;
+
+    try {
+        std::filesystem::path relativePath = std::filesystem::relative(filePath, repositoryRoot);
+        indexEntry << relativePath.string() << "," << hash << '\n';
+    } catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "Error computing relative path: " << e.what() << std::endl;
+        return;
+    }
+
+    std::ofstream file(indexPath, std::ios::app | std::ios::binary);
+    if (!file) {
+        std::cerr << "Failed to open index file\n" << indexPath;
+    } else {
+        file << indexEntry.str();
+    }
+}
+
 void add(char* argv[]){
     if (argv[2] == NULL) {
         std::cout << "Usage: add <filepath> \n";
@@ -19,13 +39,15 @@ void add(char* argv[]){
 
     //add check to not add the .minigit folder
     addToObjectsFolder(filePath, objectFolderPath);
-   
-    //add to index
+
 }
 
 //probably needs refactoring, the code at the end of directory and file if statement is repeated
-blob addToObjectsFolder(const std::filesystem::path& filePath, const std::filesystem::path& objectFolderPath){
-
+blob addToObjectsFolder(const std::filesystem::path& filePath, const std::filesystem::path& repositoryRoot){
+    
+    if (filePath.filename() == ".minigit") return;
+    std::filesystem::path objectFolderPath = repositoryRoot / ".minigit" /"objects";
+    
     if(std::filesystem::is_directory(filePath)){
         
         //get a list of all files/folders in current folder
@@ -42,7 +64,7 @@ blob addToObjectsFolder(const std::filesystem::path& filePath, const std::filesy
         std::vector<blob> listOfBlobs;
         for(const auto& entry: folderContents){
             std::cout << "file: " << entry; 
-            listOfBlobs.emplace_back(addToObjectsFolder(entry, objectFolderPath));
+            listOfBlobs.emplace_back(addToObjectsFolder(entry, repositoryRoot));
         }
 
         //for each blob/tree add it to our tree content, this will be written to objects folder later
@@ -63,15 +85,14 @@ blob addToObjectsFolder(const std::filesystem::path& filePath, const std::filesy
             if (!file) {
                 std::cerr << "Failed to create object file\n" << objectPath;
             } else {
-                file << treeFileContents.str();
+                file << treeFile.str();
                 blob currentBlob(hashedObject, filePath.filename().string(), FileType::TREE);
                 return currentBlob;
             }
         }
         //return the blob if it already exists (deduplication)
         else{
-            return blob(hashedObject, filePath.filename().string(), 
-            std::filesystem::is_directory(filePath) ? FileType::TREE : FileType::BLOB);
+            return blob(hashedObject, filePath.filename().string(), FileType::TREE);
         }
 
     }
@@ -89,12 +110,13 @@ blob addToObjectsFolder(const std::filesystem::path& filePath, const std::filesy
             } else {
                 file << serializedContent;
                 blob currentBlob(hashedObject, filePath.filename().string(), FileType::BLOB);
+                addToIndexFile(filePath, hashedObject, repositoryRoot);
                 return currentBlob;
             }
         }
         else{
-            return blob(hashedObject, filePath.filename().string(), 
-            std::filesystem::is_directory(filePath) ? FileType::TREE : FileType::BLOB);
+            addToIndexFile(filePath, hashedObject, repositoryRoot);
+            return blob(hashedObject, filePath.filename().string(), FileType::BLOB);
         }
     }
 
