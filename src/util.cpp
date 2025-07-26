@@ -3,8 +3,6 @@
 #include "sha1.hpp"
 #include "util.hpp"
 
-
-
 std::string hashObject(const std::string& fileData){
     SHA1 sha1;
     sha1.update(fileData);
@@ -23,7 +21,8 @@ std::filesystem::path findRepositoryRoot(std::filesystem::path start) {
 }
 
 //turn file into "blob (or tree) <size>\0" + file contents as a string
-const std::string serializeFile(const std::filesystem::path& filePath, const FileType& fileType){
+const std::string serializeFile(const std::filesystem::path& filePath){
+
     std::ifstream file(filePath, std::ios::in | std::ios::binary);
     if(!file){
         throw std::runtime_error("Serializer failed to open file: " + filePath.string());
@@ -33,16 +32,7 @@ const std::string serializeFile(const std::filesystem::path& filePath, const Fil
     std::ostringstream fileHeader;
 
     content << file.rdbuf();
-
-    switch(fileType){
-        case FileType::BLOB :
-            fileHeader << "blob " << content.str().size() << '\0';
-        break;
-
-        case FileType::TREE :
-            fileHeader << "tree " << content.str().size() << '\0';
-        break;
-    }
+    fileHeader << "blob " << content.str().size() << '\0';
     serializedFile << fileHeader.str() << content.str();
     return serializedFile.str();
 }
