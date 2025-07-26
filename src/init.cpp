@@ -43,8 +43,6 @@ void init(char* argv[]) {
             std::ofstream headFile(headFilePath, std::ios::trunc);
             if (!headFile) {
                 std::cerr << "Failed to open HEAD file for writing\n";
-            } else {
-                headFile << "This is the HEAD file\n";
             }
         //don't overwrite
         } else {
@@ -55,8 +53,6 @@ void init(char* argv[]) {
         std::ofstream headFile(headFilePath);
         if (!headFile) {
             std::cerr << "Failed to create HEAD file\n";
-        } else {
-            headFile << "This is the HEAD file\n";
         }
     }
 
@@ -72,8 +68,6 @@ void init(char* argv[]) {
             std::ofstream indexFile(indexFilePath, std::ios::trunc);
             if (!indexFile) {
                 std::cerr << "Failed to open index file for writing\n";
-            } else {
-                indexFile << "This is the index file\n";
             }
         //don't overwrite
         } else {
@@ -84,8 +78,6 @@ void init(char* argv[]) {
         std::ofstream indexFile(indexFilePath);
         if (!indexFile) {
             std::cerr << "Failed to create index file\n";
-        } else {
-            indexFile << "This is the index file\n";
         }
     }
 
