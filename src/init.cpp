@@ -12,7 +12,6 @@ void init(char* argv[]) {
         return;
     }
 
-
     const char* path = argv[2];
 
     std::string pathstr = path;

@@ -18,7 +18,7 @@ void add(char* argv[]){
     std::filesystem::path objectFolderPath = repositoryRoot / ".minigit" /"objects";
 
     //add check to not add the .minigit folder
-    addToObjectsFolder(filePath, objectFolderPath);
+    addToObjectsFolder(filePath, repositoryRoot);
 
 }
 
@@ -85,7 +85,7 @@ blob addToObjectsFolder(const std::filesystem::path& filePath, const std::filesy
         return writeBlob(filePath, serializedContent, hash, repositoryRoot); 
     }
 
-    throw std::runtime_error("Failed to create object file \n");
+    throw std::runtime_error("Failed to create object file in addToObjectsFolder \n");
 }
 
 
@@ -105,7 +105,8 @@ blob writeBlob(const std::filesystem::path& filePath, const std::string& content
     if(!std::filesystem::exists(objectPath)){
         std::ofstream file(objectPath, std::ios::binary);
         if (!file) {
-            throw std::runtime_error("Failed to create object file \n");
+            std::cerr << "Trying to write to" << objectPath;
+            throw std::runtime_error("Failed creating file \n");
         } else {
             file << contents;
         }
