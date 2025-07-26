@@ -25,21 +25,61 @@ void add(char* argv[]){
 void addToIndexFile(const std::filesystem::path& filePath, const std::string& hash, const std::filesystem::path& repositoryRoot){
     std::filesystem::path indexPath = repositoryRoot / ".minigit" / "index";
     std::stringstream indexEntry;
+    std::filesystem::path relativePath;
 
     try {
-        std::filesystem::path relativePath = std::filesystem::relative(filePath, repositoryRoot);
+        relativePath = std::filesystem::relative(filePath, repositoryRoot);
         indexEntry << relativePath.string() << "," << hash << '\n';
     } catch (const std::filesystem::filesystem_error& e) {
         std::cerr << "Error computing relative path: " << e.what() << std::endl;
         return;
     }
 
-    std::ofstream file(indexPath, std::ios::app | std::ios::binary);
+    std::ifstream file(indexPath, std::ios::app | std::ios::binary);
     if (!file) {
-        std::cerr << "Failed to open index file\n" << indexPath;
-    } else {
-        file << indexEntry.str();
+        std::cerr << "Failed to open index file for reading\n" << indexPath;
+        return;
     }
+
+    std::string line;
+    std::vector<std::string> updatedLines;
+
+    //each line of file gets put into line string
+    while (std::getline(file, line)) {
+        //find the position of the comma
+        size_t commaPos = line.find(',');
+        //if there is a comma on this line
+        if (commaPos != std::string::npos) {
+            //take all chars from pos 0 to commaposition
+            std::string entryPath = line.substr(0, commaPos);
+            std::string entryHash = line.substr(commaPos + 1);
+            //if we already have an entry for this
+            if (relativePath == entryPath && hash == entryHash) {
+                return;
+            }
+            else if (entryPath == relativePath.string() && entryHash != hash){
+                continue;
+            }
+        }
+
+        std::stringstream newLine;
+        newLine << line << "\n";
+        updatedLines.emplace_back(newLine.str());
+    }
+
+    file.close();
+
+    std::ofstream ofile(indexPath, std::ios::trunc | std::ios::binary);
+    if (!ofile) {
+        std::cerr << "Failed to open index file for writing\n" << indexPath;
+        return;
+    }
+    for (const auto& updatedLine : updatedLines) {
+        ofile << updatedLine;   
+        std::cout << "writing file to index: 1" << updatedLine << std::endl;
+    } 
+    ofile << indexEntry.str();
+    std::cout << "writing file to index: 2" << indexEntry.str() << std::endl;
 }
 
 blob addToObjectsFolder(const std::filesystem::path& filePath, const std::filesystem::path& repositoryRoot){
@@ -62,7 +102,6 @@ blob addToObjectsFolder(const std::filesystem::path& filePath, const std::filesy
         //recursively call addToObjects to build tree of blobs and trees
         std::vector<blob> listOfBlobs;
         for(const auto& entry: folderContents){
-            std::cout << "file: " << entry; 
             listOfBlobs.emplace_back(addToObjectsFolder(entry, repositoryRoot));
         }
 
