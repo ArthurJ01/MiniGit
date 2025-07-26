@@ -10,4 +10,5 @@
 #include "util.hpp"
 
 void add(char* argv[]);
+void addToIndexFile(const std::filesystem::path& filePath, const std::string& hash, const std::filesystem::path& repositoryRoot);
 blob addToObjectsFolder(const std::filesystem::path& filePath, const std::filesystem::path& objectFolderPath);

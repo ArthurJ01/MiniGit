@@ -8,6 +8,20 @@
 #include "util.hpp"
 #include "add.hpp"
 
+void add(char* argv[]){
+    if (argv[2] == NULL) {
+        std::cout << "Usage: add <filepath> \n";
+        return;
+    }
+    std::filesystem::path filePath = argv[2];
+    std::filesystem::path repositoryRoot = findRepositoryRoot(filePath);
+    std::filesystem::path objectFolderPath = repositoryRoot / ".minigit" /"objects";
+
+    //add check to not add the .minigit folder
+    addToObjectsFolder(filePath, objectFolderPath);
+
+}
+
 void addToIndexFile(const std::filesystem::path& filePath, const std::string& hash, const std::filesystem::path& repositoryRoot){
     std::filesystem::path indexPath = repositoryRoot / ".minigit" / "index";
     std::stringstream indexEntry;
@@ -26,20 +40,6 @@ void addToIndexFile(const std::filesystem::path& filePath, const std::string& ha
     } else {
         file << indexEntry.str();
     }
-}
-
-void add(char* argv[]){
-    if (argv[2] == NULL) {
-        std::cout << "Usage: add <filepath> \n";
-        return;
-    }
-    std::filesystem::path filePath = argv[2];
-    std::filesystem::path repositoryRoot = findRepositoryRoot(filePath);
-    std::filesystem::path objectFolderPath = repositoryRoot / ".minigit" /"objects";
-
-    //add check to not add the .minigit folder
-    addToObjectsFolder(filePath, objectFolderPath);
-
 }
 
 //probably needs refactoring, the code at the end of directory and file if statement is repeated
