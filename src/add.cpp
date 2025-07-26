@@ -42,10 +42,9 @@ void addToIndexFile(const std::filesystem::path& filePath, const std::string& ha
     }
 }
 
-//probably needs refactoring, the code at the end of directory and file if statement is repeated
 blob addToObjectsFolder(const std::filesystem::path& filePath, const std::filesystem::path& repositoryRoot){
     
-    if (filePath.filename() == ".minigit") return;
+    if (filePath.filename() == ".minigit") return blob("", "", FileType::TREE);
     std::filesystem::path objectFolderPath = repositoryRoot / ".minigit" /"objects";
     
     if(std::filesystem::is_directory(filePath)){
@@ -67,58 +66,55 @@ blob addToObjectsFolder(const std::filesystem::path& filePath, const std::filesy
             listOfBlobs.emplace_back(addToObjectsFolder(entry, repositoryRoot));
         }
 
-        //for each blob/tree add it to our tree content, this will be written to objects folder later
         std::stringstream treeFileContents;
         for(const blob& currentBlob : listOfBlobs){
             treeFileContents << currentBlob.fileTypeStr << " " << currentBlob.hash << " " << currentBlob.fileName << std::endl;
         }
 
-        //add the tree header and the list of all blobs and trees after
         std::stringstream treeFile;
         treeFile << "tree " << treeFileContents.str().size() << '\0' << treeFileContents.str();
+        std::string hash = hashObject(treeFile.str());
 
-        //hash it and store it, also returns itself to build the tree back up for the recursive call
-        std::string hashedObject = hashObject(treeFile.str());
-        std::filesystem::path objectPath = objectFolderPath / hashedObject;
-        if(!std::filesystem::exists(objectPath)){
-            std::ofstream file(objectPath, std::ios::binary);
-            if (!file) {
-                std::cerr << "Failed to create object file\n" << objectPath;
-            } else {
-                file << treeFile.str();
-                blob currentBlob(hashedObject, filePath.filename().string(), FileType::TREE);
-                return currentBlob;
-            }
-        }
-        //return the blob if it already exists (deduplication)
-        else{
-            return blob(hashedObject, filePath.filename().string(), FileType::TREE);
-        }
+        return writeBlob(filePath, treeFile.str(), hash, repositoryRoot); 
 
     }
     //serialize -> hash -> save -> return itself
     else{
         std::string serializedContent = serializeFile(filePath);
-        std::string hashedObject = hashObject(serializedContent);
-        
-        std::filesystem::path objectPath = objectFolderPath / hashedObject;
-
-        if(!std::filesystem::exists(objectPath)){
-            std::ofstream file(objectPath, std::ios::binary);
-            if (!file) {
-                std::cerr << "Failed to create object file\n" << objectPath;
-            } else {
-                file << serializedContent;
-                blob currentBlob(hashedObject, filePath.filename().string(), FileType::BLOB);
-                addToIndexFile(filePath, hashedObject, repositoryRoot);
-                return currentBlob;
-            }
-        }
-        else{
-            addToIndexFile(filePath, hashedObject, repositoryRoot);
-            return blob(hashedObject, filePath.filename().string(), FileType::BLOB);
-        }
+        std::string hash = hashObject(serializedContent);
+        return writeBlob(filePath, serializedContent, hash, repositoryRoot); 
     }
 
     throw std::runtime_error("Failed to create object file \n");
+}
+
+
+blob writeBlob(const std::filesystem::path& filePath, const std::string& contents, const std::string& hash, const std::filesystem::path& repositoryRoot){
+        
+    std::filesystem::path objectFolderPath = repositoryRoot / ".minigit" /"objects";
+    std::filesystem::path objectPath = objectFolderPath / hash;
+    FileType fileType;
+
+    if(std::filesystem::is_directory(filePath)){
+        fileType = FileType::TREE;
+    }
+    else{
+        fileType = FileType::BLOB;
+    }
+
+    if(!std::filesystem::exists(objectPath)){
+        std::ofstream file(objectPath, std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("Failed to create object file \n");
+        } else {
+            file << contents;
+        }
+    }
+
+    blob currentBlob(hash, filePath.filename().string(), fileType);
+    if(fileType == FileType::BLOB){
+        addToIndexFile(filePath, hash, repositoryRoot);
+    }
+
+    return currentBlob;
 }
