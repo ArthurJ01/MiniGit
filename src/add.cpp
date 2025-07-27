@@ -29,7 +29,7 @@ void addToIndexFile(const std::filesystem::path& filePath, const std::string& ha
 
     try {
         relativePath = std::filesystem::relative(filePath, repositoryRoot);
-        indexEntry << relativePath.string() << "," << hash << '\n';
+        indexEntry << relativePath.string() << "," << hash;
     } catch (const std::filesystem::filesystem_error& e) {
         std::cerr << "Error computing relative path: " << e.what() << std::endl;
         return;
@@ -63,7 +63,7 @@ void addToIndexFile(const std::filesystem::path& filePath, const std::string& ha
         }
 
         std::stringstream newLine;
-        newLine << line << "\n";
+        newLine << line;
         updatedLines.emplace_back(newLine.str());
     }
 
@@ -75,10 +75,10 @@ void addToIndexFile(const std::filesystem::path& filePath, const std::string& ha
         return;
     }
     for (const auto& updatedLine : updatedLines) {
-        ofile << updatedLine;   
+        ofile << updatedLine << "\n";   
         std::cout << "writing file to index: 1" << updatedLine << std::endl;
     } 
-    ofile << indexEntry.str();
+    ofile << indexEntry.str() << "\n";
     std::cout << "writing file to index: 2" << indexEntry.str() << std::endl;
 }
 
