@@ -121,7 +121,9 @@ blob addToObjectsFolder(const std::filesystem::path& filePath, const std::filesy
     else{
         std::string serializedContent = serializeFile(filePath);
         std::string hash = hashObject(serializedContent);
-        return writeBlob(filePath, serializedContent, hash, repositoryRoot); 
+        blob currentBlob = writeBlob(filePath, serializedContent, hash, repositoryRoot);
+        addToIndexFile(filePath, hash, repositoryRoot);
+        return currentBlob; 
     }
 
     throw std::runtime_error("Failed to create object file in addToObjectsFolder \n");
@@ -150,11 +152,6 @@ blob writeBlob(const std::filesystem::path& filePath, const std::string& content
             file << contents;
         }
     }
-
     blob currentBlob(hash, filePath.filename().string(), fileType);
-    if(fileType == FileType::BLOB){
-        addToIndexFile(filePath, hash, repositoryRoot);
-    }
-
     return currentBlob;
 }
