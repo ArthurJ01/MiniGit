@@ -87,6 +87,9 @@ blob createCommitTree(std::filesystem::path filePath, std::filesystem::path repo
         This is done so that the version added in add is the one commited, not the one currently there
     */
     std::vector<blob> listOfBlobs;
+
+    //do a dfs, add things to a map <path, string> string is what will go in the tree object
+
     for(const auto& entry: folderContents){
         if(std::filesystem::is_regular_file(entry)){
             std::string relativePath = std::filesystem::relative(entry, repositoryRoot).string();
