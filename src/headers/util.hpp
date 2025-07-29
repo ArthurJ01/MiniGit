@@ -4,15 +4,16 @@
 
 #include "sha1.hpp"
 
-enum class FileType{BLOB, TREE};
+enum class FileType{BLOB, TREE, EMPTY};
 
 struct blob{
     std::string hash;
     std::string fileName;
     std::string fileMode;
+    FileType fileType;
 
     blob(std::string hash, std::string fileName, FileType fileType) 
-        :  hash(hash), fileName(fileName)
+        :  hash(hash), fileName(fileName), fileType(fileType)
     {
         switch (fileType){
 
@@ -22,9 +23,15 @@ struct blob{
             case FileType::TREE :
                 fileMode = "040000";
             break;
+            default :
+                fileMode = "NULL";
+            break;
         }
 
     }
+
+    blob (FileType fileType)
+        : fileType(fileType){}
 };
 
 std::string hashObject(const std::string& fileData);

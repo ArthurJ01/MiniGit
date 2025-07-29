@@ -4,7 +4,13 @@
 #include "add.hpp"
 
 #include "util.hpp"
-#include "unordered_map"
+#include <unordered_map>
+#include <unordered_set>
+#include <stack>
+void commit (char* argv[]);
+std::unordered_map<std::string, std::string> loadIndex(const std::filesystem::path& indexPath);
+blob createCommitTree(std::filesystem::path filePath, std::filesystem::path repositoryRoot, const std::unordered_map<std::string, std::string>& indexMap);
+void writeTree(const std::string& contents, const std::string& hash, const std::filesystem::path& repositoryRoot);
 
 void commit (char* argv[]){
     std::filesystem::path repositoryRoot = findRepositoryRoot(std::filesystem::current_path());
@@ -35,8 +41,10 @@ void commit (char* argv[]){
     */
 
     //std::filesystem::path objectFolderPath = repositoryRoot / ".minigit" / "objects";
-   // createCommitTree(repositoryRoot);
-
+    //load index into hashmap for lookups, <pathString, hash>
+    std::unordered_map<std::string, std::string> indexMap = loadIndex(repositoryRoot / ".minigit" / "index");
+    blob commit = createCommitTree(repositoryRoot, repositoryRoot, indexMap);
+    
     
 }
 
@@ -58,15 +66,11 @@ std::unordered_map<std::string, std::string> loadIndex(const std::filesystem::pa
     return indexMap;
 }
 
-blob createCommitTree(std::filesystem::path filePath, std::filesystem::path repositoryRoot){
+blob createCommitTree(std::filesystem::path filePath, std::filesystem::path repositoryRoot, const std::unordered_map<std::string, std::string>& indexMap){
 
     if (!std::filesystem::is_directory(filePath)) {
         throw std::runtime_error("createCommitTree() called on a non-directory path: " + filePath.string());
     }
-    //has no files/folders
-    if(std::filesystem::directory_iterator(filePath) == std::filesystem::directory_iterator()){
-       // return;
-    }   
 
     //get a list of all files/folders in current folder
     std::vector<std::filesystem::path> folderContents;
@@ -78,35 +82,45 @@ blob createCommitTree(std::filesystem::path filePath, std::filesystem::path repo
         std::cerr << "Error: " << e.what() << std::endl;
     }
 
-    //load index into hashmap for lookups
-    std::unordered_map<std::string, std::string> indexMap = loadIndex(repositoryRoot / ".minigit" / "index");
 
-    /*
-        recursively call addToObjects to build tree of blobs and trees
-        if it's a file, it will check if its in the index map and if yes return the blob directly
-        This is done so that the version added in add is the one commited, not the one currently there
-    */
     std::vector<blob> listOfBlobs;
 
-    //do a dfs, add things to a map <path, string> string is what will go in the tree object
-
     for(const auto& entry: folderContents){
-        if(std::filesystem::is_regular_file(entry)){
+        if(std::filesystem::is_directory(entry)){
+            //has no files/folders
+            if(std::filesystem::directory_iterator(entry) == std::filesystem::directory_iterator()){
+                continue;
+            }
+            else{
+                blob possibleBlob = createCommitTree(entry, repositoryRoot, indexMap);
+                if(possibleBlob.fileType == FileType::EMPTY){
+                    continue;
+                }
+                listOfBlobs.emplace_back(possibleBlob);
+            }   
+        }
+        else if(std::filesystem::is_regular_file(entry)){
             std::string relativePath = std::filesystem::relative(entry, repositoryRoot).string();
             //if not in indexmap
             if (indexMap.find(relativePath) == indexMap.end()) {
                 continue;
             }
             else{
+                std::cout << "found this file in index: " << relativePath << std::endl;
                 listOfBlobs.emplace_back(indexMap.at(relativePath), entry.filename().string(), FileType::BLOB);
-                continue;
             }
         }
-        listOfBlobs.emplace_back(createCommitTree(entry, repositoryRoot));
+    }
+
+    if(listOfBlobs.empty()){
+        return blob (FileType::EMPTY);
     }
 
     std::stringstream treeFileContents;
     for(const blob& currentBlob : listOfBlobs){
+        if(currentBlob.fileType == FileType::EMPTY){
+            continue;
+        }
         treeFileContents << currentBlob.fileMode << " " << currentBlob.fileName;
         treeFileContents.put('\0');
         treeFileContents << currentBlob.hash;
@@ -115,12 +129,26 @@ blob createCommitTree(std::filesystem::path filePath, std::filesystem::path repo
     std::stringstream treeFile;
     treeFile << "tree " << treeFileContents.str().size() << '\0' << treeFileContents.str();
     std::string hash = hashObject(treeFile.str());
-    //  blob currentBlob (filePath, treeFile.str(), hash);
+    writeTree(treeFile.str(), hash, repositoryRoot);
     blob currentBlob (hash, filePath.filename().string(), FileType::TREE);
     return currentBlob; 
-
 }
 
+void writeTree(const std::string& contents, const std::string& hash, const std::filesystem::path& repositoryRoot){
+        
+    std::filesystem::path objectFolderPath = repositoryRoot / ".minigit" /"objects";
+    std::filesystem::path objectPath = objectFolderPath / hash;
+
+    if(!std::filesystem::exists(objectPath)){
+        std::ofstream file(objectPath, std::ios::binary);
+        if (!file) {
+            std::cerr << "Trying to write to" << objectPath;
+            throw std::runtime_error("Failed creating file \n");
+        } else {
+            file << contents;
+        }
+    }
+}
 
 int main(int argc, char* argv[]){
 
