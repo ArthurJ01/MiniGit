@@ -67,6 +67,9 @@
         "xloctime": "cpp",
         "xtree": "cpp",
         "unordered_map": "cpp",
-        "xhash": "cpp"
+        "xhash": "cpp",
+        "stack": "cpp",
+        "deque": "cpp",
+        "unordered_set": "cpp"
     }
 }

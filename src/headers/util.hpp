@@ -29,4 +29,3 @@ struct blob{
 
 std::string hashObject(const std::string& fileData);
 std::filesystem::path findRepositoryRoot(std::filesystem::path start);
-const std::string serializeFile(const std::filesystem::path& filePath);

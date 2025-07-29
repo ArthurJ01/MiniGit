@@ -65,7 +65,7 @@ blob createCommitTree(std::filesystem::path filePath, std::filesystem::path repo
     }
     //has no files/folders
     if(std::filesystem::directory_iterator(filePath) == std::filesystem::directory_iterator()){
-        return;
+       // return;
     }   
 
     //get a list of all files/folders in current folder
