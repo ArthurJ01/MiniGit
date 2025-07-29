@@ -107,9 +107,11 @@ blob addToObjectsFolder(const std::filesystem::path& filePath, const std::filesy
 
         std::stringstream treeFileContents;
         for(const blob& currentBlob : listOfBlobs){
-            treeFileContents << currentBlob.fileTypeStr << " " << currentBlob.hash << " " << currentBlob.fileName << std::endl;
+            treeFileContents << currentBlob.fileMode << " " << currentBlob.fileName;
+            treeFileContents.put('\0');
+            treeFileContents << currentBlob.hash;
         }
-
+        
         std::stringstream treeFile;
         treeFile << "tree " << treeFileContents.str().size() << '\0' << treeFileContents.str();
         std::string hash = hashObject(treeFile.str());
