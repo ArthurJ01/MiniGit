@@ -82,6 +82,7 @@ void addToIndexFile(const std::filesystem::path& filePath, const std::string& ha
     std::cout << "writing file to index: 2" << indexEntry.str() << std::endl;
 }
 
+//rewrite this to not add folders (done at commit time)
 blob addToObjectsFolder(const std::filesystem::path& filePath, const std::filesystem::path& repositoryRoot){
     
     if (filePath.filename() == ".minigit") return blob("", "", FileType::TREE);
