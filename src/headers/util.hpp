@@ -9,7 +9,7 @@ enum class FileType{BLOB, TREE};
 struct blob{
     std::string hash;
     std::string fileName;
-    std::string fileTypeStr;
+    std::string fileMode;
 
     blob(std::string hash, std::string fileName, FileType fileType) 
         :  hash(hash), fileName(fileName)
@@ -17,10 +17,10 @@ struct blob{
         switch (fileType){
 
             case FileType::BLOB :
-                fileTypeStr = "blob";
+                fileMode = "100644";
             break;
             case FileType::TREE :
-                fileTypeStr = "tree";
+                fileMode = "040000";
             break;
         }
 

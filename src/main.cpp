@@ -32,6 +32,11 @@ void commit (char* argv[]){
         When you get to a file, check if its in the index (yes keep, no throw away)
         Don't use empty directories
     */
+
+    //std::filesystem::path objectFolderPath = repositoryRoot / ".minigit" / "objects";
+   // createCommitTree(repositoryRoot);
+
+    
 }
 
 int main(int argc, char* argv[]){
