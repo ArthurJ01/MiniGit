@@ -36,3 +36,4 @@ struct blob{
 
 std::string hashObject(const std::string& fileData);
 std::filesystem::path findRepositoryRoot(std::filesystem::path start);
+void writeToObjectsFolder(const std::string& contents, const std::string& hash, const std::filesystem::path& repositoryRoot);

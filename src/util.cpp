@@ -19,3 +19,19 @@ std::filesystem::path findRepositoryRoot(std::filesystem::path start) {
     }
     throw std::runtime_error("Not inside a valid repository");
 }
+
+void writeToObjectsFolder(const std::string& contents, const std::string& hash, const std::filesystem::path& repositoryRoot){
+        
+    std::filesystem::path objectFolderPath = repositoryRoot / ".minigit" /"objects";
+    std::filesystem::path objectPath = objectFolderPath / hash;
+
+    if(!std::filesystem::exists(objectPath)){
+        std::ofstream file(objectPath, std::ios::binary);
+        if (!file) {
+            std::cerr << "Trying to write to" << objectPath;
+            throw std::runtime_error("Failed creating file \n");
+        } else {
+            file << contents;
+        }
+    }
+}

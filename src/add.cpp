@@ -60,32 +60,14 @@ void add(char* argv[]){
             content << file.rdbuf();
             std::string serializedContent = content.str();
             std::string hash = hashObject(serializedContent);
-            writeBlob(serializedContent, hash, repositoryRoot);
+            std::stringstream blobContents;
+            blobContents << "blob " << serializedContent.size() << '\0' << serializedContent;
+            writeToObjectsFolder(blobContents.str(), hash, repositoryRoot);
             addToIndexFile(currentPath, hash, repositoryRoot);
         }
     }
 
 }
-
-
-void writeBlob(const std::string& contents, const std::string& hash, const std::filesystem::path& repositoryRoot){
-        
-    std::filesystem::path objectFolderPath = repositoryRoot / ".minigit" /"objects";
-    std::filesystem::path objectPath = objectFolderPath / hash;
-
-    if(!std::filesystem::exists(objectPath)){
-        std::ofstream file(objectPath, std::ios::binary);
-        if (!file) {
-            std::cerr << "Trying to write to" << objectPath;
-            throw std::runtime_error("Failed creating file \n");
-        } else {
-            std::stringstream blobContents;
-            blobContents << "blob " << contents.size() << '\0' << contents;
-            file << blobContents.str();
-        }
-    }
-}
-
 
 void addToIndexFile(const std::filesystem::path& filePath, const std::string& hash, const std::filesystem::path& repositoryRoot){
     std::filesystem::path indexPath = repositoryRoot / ".minigit" / "index";
