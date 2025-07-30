@@ -22,25 +22,7 @@ void commit (char* argv[]){
     std::stringstream indexFileContents;
     indexFileContents << file.rdbuf();
     std::cout << indexFileContents.str();
-
-    //THIS IS NOT IT
-    /*
-        for each file in index
-        get parent, store in hashmap, child as key, parent as value, go up one level and do same with the folder
-        
-        testing shit
-        using Tree = std::unordered_map<std::string, std::vector<blob>>;
-        Tree treeMap;
-    */
-
-    //THIS IS IT!!!:
-    /*
-        do as if you did add on the whole repo
-        When you get to a file, check if its in the index (yes keep, no throw away)
-        Don't use empty directories
-    */
-
-    //std::filesystem::path objectFolderPath = repositoryRoot / ".minigit" / "objects";
+    
     //load index into hashmap for lookups, <pathString, hash>
     std::unordered_map<std::string, std::string> indexMap = loadIndex(repositoryRoot / ".minigit" / "index");
     blob commit = createCommitTree(repositoryRoot, repositoryRoot, indexMap);
