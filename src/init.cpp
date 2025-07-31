@@ -16,18 +16,25 @@ void init(char* argv[]) {
         path = argv[2];
     }
     
-    std::filesystem::path repositoryRoot = path / ".minigit";
-    std::filesystem::path objectsFolderPath = repositoryRoot / "objects";
-    std::filesystem::path indexFilePath = repositoryRoot / "index";
-    std::filesystem::path headsFolderPath = repositoryRoot / "refs" / "heads";
+    std::filesystem::path miniGitDir = path / ".minigit";
+    std::filesystem::path objectsFolderPath = miniGitDir / "objects";
+    std::filesystem::path indexFilePath = miniGitDir / "index";
+    std::filesystem::path headsFolderPath = miniGitDir / "refs" / "heads";
+    std::filesystem::path headFilePath = miniGitDir / "HEAD";
     std::filesystem::path masterFilePath = headsFolderPath / "master";
 
     try{
-        std::filesystem::create_directory(repositoryRoot);
+        std::filesystem::create_directory(miniGitDir);
         std::filesystem::create_directory(objectsFolderPath);
         std::filesystem::create_directories(headsFolderPath);
         createOrOverwriteFile(masterFilePath);
         createOrOverwriteFile(indexFilePath);
+        createOrOverwriteFile(headFilePath);
+        std::ofstream headFile(headFilePath);
+        masterFilePath = std::filesystem::relative(masterFilePath, miniGitDir);
+        headFile << masterFilePath.string();
+        headFile.close();
+
         std::cout << "repository successfully initialised";
     } catch (const std::filesystem::filesystem_error& e) {
         std::cerr << "Filesystem error: " << e.what() << '\n';

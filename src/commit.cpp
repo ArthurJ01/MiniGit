@@ -13,7 +13,6 @@ void commit (char* argv[]){
 
     std::filesystem::path repositoryRoot = findRepositoryRoot(std::filesystem::current_path());
     std::filesystem::path indexFilePath = repositoryRoot / ".minigit" / "index";
-    std::filesystem::path headFilePath = repositoryRoot / ".minigit" / "refs" / "heads" / "master";
     std::ifstream indexFileRead(indexFilePath);
     if(!indexFileRead){
         std::cout << "couldnt open Index file for the commit";
@@ -22,11 +21,13 @@ void commit (char* argv[]){
     indexFileContents << indexFileRead.rdbuf();
     indexFileRead.close();
 
+    std::filesystem::path currentBranchPath = getCurrentBranchPath(repositoryRoot);
+
     //load index into hashmap for lookups, <pathString, hash>
     std::unordered_map<std::string, std::string> indexMap = loadIndex(repositoryRoot / ".minigit" / "index");
     blob commit = createCommitTree(repositoryRoot, repositoryRoot, indexMap);
     
-    std::string parentCommitHash = getParentCommitHash(headFilePath);
+    std::string parentCommitHash = getParentCommitHash(currentBranchPath);
 
     std::stringstream commitContents;
     commitContents << "tree " << commit.hash << "\n";
@@ -39,15 +40,15 @@ void commit (char* argv[]){
     commitContents << "\n" << commitMessage << "\n";
     std::string hash = hashObject(commitContents.str());
     writeToObjectsFolder(commitContents.str(), hash, repositoryRoot);
-    std::ofstream headFile(headFilePath, std::ios::trunc);
-    if(!headFile){
+    std::ofstream branchFile(currentBranchPath, std::ios::trunc);
+    if(!branchFile){
         std::cerr << "could not open head File";
         return;
     }
     else{
-        headFile << hash;
+        branchFile << hash;
     }
-    headFile.close();
+    branchFile.close();
     //reset index file
     std::ofstream indexFileWrite(indexFilePath, std::ios::trunc);
     if(!indexFileWrite){
@@ -55,7 +56,22 @@ void commit (char* argv[]){
     }
     indexFileWrite.close();
 }
-
+std::filesystem::path getCurrentBranchPath(const std::filesystem::path& repositoryRoot){
+    std::filesystem::path headFilePath = repositoryRoot / ".minigit" / "HEAD";
+    std::string currentBranchPathStr;
+    std::filesystem::path currentBranchPath;
+    std::ifstream headFile(headFilePath);
+    if(!headFile){
+        std::cerr << "could not open HEAD file";
+        return currentBranchPath;
+    }
+    else{
+        std::getline(headFile, currentBranchPathStr);
+        currentBranchPath = currentBranchPathStr;
+        currentBranchPath = repositoryRoot / ".minigit" / currentBranchPath;
+        return currentBranchPath;
+    }
+}
 std::string getParentCommitHash(const std::filesystem::path& headFilePath){
     std::ifstream headFile(headFilePath);
     if (!headFile) {
