@@ -56,22 +56,7 @@ void commit (char* argv[]){
     }
     indexFileWrite.close();
 }
-std::filesystem::path getCurrentBranchPath(const std::filesystem::path& repositoryRoot){
-    std::filesystem::path headFilePath = repositoryRoot / ".minigit" / "HEAD";
-    std::string currentBranchPathStr;
-    std::filesystem::path currentBranchPath;
-    std::ifstream headFile(headFilePath);
-    if(!headFile){
-        std::cerr << "could not open HEAD file";
-        return currentBranchPath;
-    }
-    else{
-        std::getline(headFile, currentBranchPathStr);
-        currentBranchPath = currentBranchPathStr;
-        currentBranchPath = repositoryRoot / ".minigit" / currentBranchPath;
-        return currentBranchPath;
-    }
-}
+
 std::string getParentCommitHash(const std::filesystem::path& headFilePath){
     std::ifstream headFile(headFilePath);
     if (!headFile) {

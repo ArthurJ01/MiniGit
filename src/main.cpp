@@ -3,6 +3,8 @@
 #include "init.hpp"
 #include "add.hpp"
 #include "commit.hpp"
+#include "log.hpp"
+
 
 int main(int argc, char* argv[]){
 
@@ -23,7 +25,7 @@ int main(int argc, char* argv[]){
             commit(argv);
         }
         else if(command == "log"){
-            std::cout << "printing files... \n";
+            log();
         } 
         else{
             std::cout << "invalid argument: " << command << std::endl;

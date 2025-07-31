@@ -25,7 +25,7 @@ $(OUT): $(OBJS) | $(BIN_DIR)
 	@$(CXX) $(CXXFLAGS) -o $@ $^
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
-	@echo -e "\033[1;32mCompiling... \033[0m "
+	@echo -e "\033[1;32mCompiling $<... \033[0m "
 	@echo -e "$< -> $@"
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
