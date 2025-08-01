@@ -25,11 +25,8 @@ void log(){
         parentFound = false;
         std::string line;
         while (std::getline(headFile, line)) {
-            //find the position of the space
             size_t spacePos = line.find(' ');
-            //if there is a space on this line
-            if (spacePos != std::string::npos) {
-                
+            if (spacePos != std::string::npos) {        
                 std::string title = line.substr(0, spacePos);
                 std::string content = line.substr(spacePos + 1);
                 if(title == "parent"){

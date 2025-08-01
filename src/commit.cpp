@@ -6,6 +6,7 @@
 #include "util.hpp"
 #include "commit.hpp"
 
+//needs optimisation and, needs to add untracked files that were in last commit that haven't changed.
 void commit (char* argv[]){
 
     //argv[2] returns true when not null
