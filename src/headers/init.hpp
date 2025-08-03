@@ -2,5 +2,5 @@
 
 #include <filesystem>
 
-void createOrOverwriteFile(const std::filesystem::path& filePath);
+bool createOrOverwriteFile(const std::filesystem::path& filePath);
 void init(char* argv[]);

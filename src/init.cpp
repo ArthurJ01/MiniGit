@@ -27,6 +27,7 @@ void init(char* argv[]) {
         std::filesystem::create_directory(miniGitDir);
         std::filesystem::create_directory(objectsFolderPath);
         std::filesystem::create_directories(headsFolderPath);
+
         createOrOverwriteFile(masterFilePath);
         createOrOverwriteFile(indexFilePath);
         createOrOverwriteFile(headFilePath);
@@ -36,12 +37,13 @@ void init(char* argv[]) {
         headFile.close();
 
         std::cout << "repository successfully initialised";
+
     } catch (const std::filesystem::filesystem_error& e) {
         std::cerr << "Filesystem error: " << e.what() << '\n';
     }
 }
 
-void createOrOverwriteFile(const std::filesystem::path& filePath) {
+bool createOrOverwriteFile(const std::filesystem::path& filePath) {
     if (std::filesystem::exists(filePath)) {
         std::cout << filePath.filename() << " already exists, do you wish to overwrite? (y/n): ";
         char response;
@@ -51,14 +53,18 @@ void createOrOverwriteFile(const std::filesystem::path& filePath) {
             std::ofstream file(filePath, std::ios::trunc);
             if (!file) {
                 std::cerr << "Failed to overwrite " << filePath.filename() << "\n";
+                return false;
             }
         } else {
             std::cout << filePath.filename() << " not overwritten.\n";
+            return false;
         }
     } else {
         std::ofstream file(filePath);
         if (!file) {
             std::cerr << "Failed to create " << filePath.filename() << "\n";
+            return false;
         }
     }
+    return true;
 }
