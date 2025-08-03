@@ -38,6 +38,8 @@ void branch(char* argv[]){
         return;
     }
     newBranchFile << fileContents.str();
+
+    std::cout << "new branch: " << newBranchPath.filename() << " created.\n";
 }
 
 int main(int argc, char* argv[]){
