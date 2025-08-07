@@ -5,11 +5,8 @@
 #include "log.hpp"
 #include "util.hpp"
 
-
-//TODO: update this to work with new refs: Head file setup (use getParentCommitHash from commit)
 void log(){
     std::filesystem::path repositoryRoot = findRepositoryRoot(std::filesystem::current_path());
-    //TODO: getParentCommitHash()
     std::string parentCommitHash = getParentCommitHash(repositoryRoot);
     std::filesystem::path nextHeadFilePath;
 
