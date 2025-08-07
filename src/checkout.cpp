@@ -22,6 +22,10 @@ void checkout(char* argv[]){
     std::string checkoutTarget = argv[2];
 
     std::string commitHash = getCommitHash(repositoryRoot, checkoutTarget);
+    if(commitHash == ""){
+        std::cout << "provide a valid branch name or commit hash";
+        return;
+    }
     std::string treeHash = getTreeObjectHash(repositoryRoot, commitHash);
     deleteAllContentInRepository(repositoryRoot);
 
@@ -149,7 +153,7 @@ std::string getCommitHash(const std::filesystem::path& repositoryRoot, const std
 
     switch(checkoutTargetType){
         case CheckoutTargetType::COMMIT : { 
-            std::cout << "checking out a commit, further commits will not be saved unless made on an existing branch \n";
+            std::cout << "checking out a commit, further commits will be detached and not saved to a branch \n";
             headFile << checkoutTarget;
             headFile.close();
             commitHash = checkoutTarget;
@@ -159,7 +163,7 @@ std::string getCommitHash(const std::filesystem::path& repositoryRoot, const std
         case CheckoutTargetType::BRANCH : {   
             
             std::filesystem::path checkoutTargetPath = headsFolderPath / checkoutTarget;
-            headFile << std::filesystem::relative(checkoutTargetPath, repositoryRoot / ".minigit").string();
+            headFile << "ref: " << std::filesystem::relative(checkoutTargetPath, repositoryRoot / ".minigit").string();
             headFile.close();
 
             //find contents of branchFile (in refs/heads/checkoutTargetPath), this is a hash to a commit object

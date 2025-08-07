@@ -14,21 +14,12 @@ void commit (char* argv[]){
 
     std::filesystem::path repositoryRoot = findRepositoryRoot(std::filesystem::current_path());
     std::filesystem::path indexFilePath = repositoryRoot / ".minigit" / "index";
-    std::ifstream indexFileRead(indexFilePath);
-    if(!indexFileRead){
-        std::cout << "couldnt open Index file for the commit";
-    }
-    std::stringstream indexFileContents;
-    indexFileContents << indexFileRead.rdbuf();
-    indexFileRead.close();
-
-    std::filesystem::path currentBranchPath = getCurrentBranchPath(repositoryRoot);
 
     //load index into hashmap for lookups, <pathString, hash>
-    std::unordered_map<std::string, std::string> indexMap = loadIndex(repositoryRoot / ".minigit" / "index");
+    std::unordered_map<std::string, std::string> indexMap = loadIndex(indexFilePath);
     blob commit = createCommitTree(repositoryRoot, repositoryRoot, indexMap);
     
-    std::string parentCommitHash = getParentCommitHash(currentBranchPath);
+    std::string parentCommitHash = getParentCommitHash(repositoryRoot);
 
     std::stringstream commitContents;
     commitContents << "tree " << commit.hash << "\n";
@@ -41,37 +32,14 @@ void commit (char* argv[]){
     commitContents << "\n" << commitMessage << "\n";
     std::string hash = hashObject(commitContents.str());
     writeToObjectsFolder(commitContents.str(), hash, repositoryRoot);
-    std::ofstream branchFile(currentBranchPath, std::ios::trunc);
-    if(!branchFile){
-        std::cerr << "could not open head File";
-        return;
-    }
-    else{
-        branchFile << hash;
-    }
-    branchFile.close();
+    updateHeadFile(repositoryRoot, hash);
+
     //reset index file
     std::ofstream indexFileWrite(indexFilePath, std::ios::trunc);
     if(!indexFileWrite){
         std::cerr << "Failed to open index file";
     }
     indexFileWrite.close();
-}
-
-std::string getParentCommitHash(const std::filesystem::path& headFilePath){
-    std::ifstream headFile(headFilePath);
-    if (!headFile) {
-        return "";
-    }
-
-    std::string commitHash;
-    std::getline(headFile, commitHash);
-
-    if (commitHash.empty()) {
-        return "";
-    }
-
-    return commitHash;
 }
 
 std::unordered_map<std::string, std::string> loadIndex(const std::filesystem::path& indexPath) {
@@ -128,6 +96,8 @@ blob createCommitTree(std::filesystem::path filePath, std::filesystem::path repo
         else if(std::filesystem::is_regular_file(entry)){
             std::string relativePath = std::filesystem::relative(entry, repositoryRoot).string();
             //if not in indexmap
+
+            //TODO: add map with all files from last commit to comparison, so we check the indexmap and lastCommitMap
             if (indexMap.find(relativePath) == indexMap.end()) {
                 continue;
             }
@@ -157,4 +127,35 @@ blob createCommitTree(std::filesystem::path filePath, std::filesystem::path repo
     writeToObjectsFolder(treeFile.str(), hash, repositoryRoot);
     blob currentBlob (hash, filePath.filename().string(), FileType::TREE);
     return currentBlob; 
+}
+
+void updateHeadFile(const std::filesystem::path& repositoryRoot, const std::string& hash){
+
+    std::filesystem::path headFilePath = repositoryRoot / ".minigit" / "HEAD";
+    std::ifstream headFile(headFilePath, std::ios::binary);
+    if(!headFile){
+        std::cerr << "could not open HEAD file";
+    }
+
+    std::stringstream buffer;
+    buffer << headFile.rdbuf();
+    std::string headContent = buffer.str();
+    
+    if (headContent.rfind("ref: ", 0) == 0) {
+        std::string refPathStr = headContent.substr(5);
+        std::filesystem::path refPath = repositoryRoot / ".minigit" / refPathStr;
+
+        std::ofstream branchFile(refPath, std::ios::trunc | std::ios::binary);
+        if (!branchFile) {
+            std::cerr << "could not open branch file";
+        }
+        branchFile << hash;
+    }
+    else{
+        std::ofstream headFile(headFilePath, std::ios::trunc | std::ios::binary);
+        if(!headFile){
+            std::cerr << "could not open HEAD file";
+        }
+        headFile << hash;
+    }
 }

@@ -7,7 +7,7 @@
 #include "checkout.hpp"
 #include "branch.hpp"
 
-
+//TODO: add header refs: on HEAD file when it contains a ref to a branch
 
 int main(int argc, char* argv[]){
 

@@ -9,5 +9,5 @@
 
 void commit (char* argv[]);
 std::unordered_map<std::string, std::string> loadIndex(const std::filesystem::path& indexPath);
-std::string getParentCommitHash(const std::filesystem::path& headFilePath);
 blob createCommitTree(std::filesystem::path filePath, std::filesystem::path repositoryRoot, const std::unordered_map<std::string, std::string>& indexMap);
+void updateHeadFile(const std::filesystem::path& repositoryRoot, const std::string& hash);

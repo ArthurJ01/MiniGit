@@ -5,16 +5,15 @@
 #include "log.hpp"
 #include "util.hpp"
 
+
+//TODO: update this to work with new refs: Head file setup (use getParentCommitHash from commit)
 void log(){
     std::filesystem::path repositoryRoot = findRepositoryRoot(std::filesystem::current_path());
-    std::filesystem::path currentBranchFilePath = getCurrentBranchPath(repositoryRoot);
+    //TODO: getParentCommitHash()
+    std::string parentCommitHash = getParentCommitHash(repositoryRoot);
     std::filesystem::path nextHeadFilePath;
 
-    //read whats in branchFile, gets a hash to a commit object
-    std::ifstream currentBranchFile(currentBranchFilePath);
-    std::stringstream headHash;
-    headHash << currentBranchFile.rdbuf();
-    std::filesystem::path headFilePath = repositoryRoot / ".minigit" / "objects" / headHash.str();
+    std::filesystem::path headFilePath = repositoryRoot / ".minigit" / "objects" / parentCommitHash;
 
     std::ifstream headFile(headFilePath);
     std::stringstream log;

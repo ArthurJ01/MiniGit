@@ -52,3 +52,34 @@ std::filesystem::path getCurrentBranchPath(const std::filesystem::path& reposito
         return currentBranchPath;
     }
 }
+
+std::string getParentCommitHash(const std::filesystem::path& repositoryRoot){
+
+    std::filesystem::path headFilePath = repositoryRoot / ".minigit" / "HEAD";
+    std::ifstream headFile(headFilePath);
+    if(!headFile){
+        std::cerr << "could not open HEAD file";
+        return "";
+    }
+
+    std::stringstream buffer;
+    buffer << headFile.rdbuf();
+    std::string headContent = buffer.str();
+    
+    if (headContent.rfind("ref: ", 0) == 0) {
+        std::string refPathStr = headContent.substr(5);
+        std::filesystem::path refPath = repositoryRoot / ".minigit" / refPathStr;
+
+        std::ifstream branchFile(refPath);
+        if (!branchFile) {
+            return "";
+        }
+
+        std::string commitHash;
+        std::getline(branchFile, commitHash);
+        return commitHash;
+    }
+    else{
+        return headContent;
+    }
+}
