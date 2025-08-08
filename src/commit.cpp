@@ -7,6 +7,46 @@
 #include "commit.hpp"
 #include "checkout.hpp"
 
+
+//needs optimisation and, needs to add untracked files that were in last commit that haven't changed.
+void commit (char* argv[]){
+
+    //argv[2] returns true when not null
+    std::string commitMessage = argv[2] ? argv[2] : " ";
+
+    std::filesystem::path repositoryRoot = findRepositoryRoot(std::filesystem::current_path());
+    std::filesystem::path indexFilePath = repositoryRoot / ".minigit" / "index";
+
+    //load index into hashmap for lookups, <pathString, hash>
+    std::string parentCommitHash = getParentCommitHash(repositoryRoot);
+    std::unordered_map<std::filesystem::path, std::string> indexMap = loadIndex(indexFilePath);
+    std::unordered_map<std::filesystem::path, std::string> lastCommitMap = loadLastCommit(repositoryRoot, parentCommitHash);
+    blob commit = createCommitTree(repositoryRoot, repositoryRoot, indexMap, lastCommitMap);
+    
+
+
+    std::stringstream commitContents;
+    commitContents << "tree " << commit.hash << "\n";
+    if (!parentCommitHash.empty()) {
+        commitContents << "parent " << parentCommitHash << "\n";
+    }
+    commitContents << "author username" << "\n";
+    commitContents << "committer username" << "\n";
+
+    commitContents << "\n" << commitMessage << "\n";
+    std::string hash = hashObject(commitContents.str());
+    writeToObjectsFolder(commitContents.str(), hash, repositoryRoot);
+    updateHeadFile(repositoryRoot, hash);
+
+    //reset index file
+    std::ofstream indexFileWrite(indexFilePath, std::ios::trunc);
+    if(!indexFileWrite){
+        std::cerr << "Failed to open index file";
+    }
+    indexFileWrite.close();
+}
+
+
 std::unordered_map<std::filesystem::path, std::string> loadLastCommit(const std::filesystem::path& repositoryRoot, const std::string& parentCommitHash){
 
     std::unordered_map<std::filesystem::path, std::string> commitMap;
@@ -59,44 +99,6 @@ std::unordered_map<std::filesystem::path, std::string> loadLastCommit(const std:
 
     return commitMap;
     
-}
-
-//needs optimisation and, needs to add untracked files that were in last commit that haven't changed.
-void commit (char* argv[]){
-
-    //argv[2] returns true when not null
-    std::string commitMessage = argv[2] ? argv[2] : " ";
-
-    std::filesystem::path repositoryRoot = findRepositoryRoot(std::filesystem::current_path());
-    std::filesystem::path indexFilePath = repositoryRoot / ".minigit" / "index";
-
-    //load index into hashmap for lookups, <pathString, hash>
-    std::string parentCommitHash = getParentCommitHash(repositoryRoot);
-    std::unordered_map<std::filesystem::path, std::string> indexMap = loadIndex(indexFilePath);
-    std::unordered_map<std::filesystem::path, std::string> lastCommitMap = loadLastCommit(repositoryRoot, parentCommitHash);
-    blob commit = createCommitTree(repositoryRoot, repositoryRoot, indexMap, lastCommitMap);
-    
-
-
-    std::stringstream commitContents;
-    commitContents << "tree " << commit.hash << "\n";
-    if (!parentCommitHash.empty()) {
-        commitContents << "parent " << parentCommitHash << "\n";
-    }
-    commitContents << "author username" << "\n";
-    commitContents << "committer username" << "\n";
-
-    commitContents << "\n" << commitMessage << "\n";
-    std::string hash = hashObject(commitContents.str());
-    writeToObjectsFolder(commitContents.str(), hash, repositoryRoot);
-    updateHeadFile(repositoryRoot, hash);
-
-    //reset index file
-    std::ofstream indexFileWrite(indexFilePath, std::ios::trunc);
-    if(!indexFileWrite){
-        std::cerr << "Failed to open index file";
-    }
-    indexFileWrite.close();
 }
 
 std::unordered_map<std::filesystem::path, std::string> loadIndex(const std::filesystem::path& indexPath) {
