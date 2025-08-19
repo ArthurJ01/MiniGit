@@ -7,7 +7,18 @@
 #include "checkout.hpp"
 #include "branch.hpp"
 
-//TODO: add header refs: on HEAD file when it contains a ref to a branch
+void merge(char* argv[]){
+    if(argv[2] == nullptr || argv[3] == nullptr){
+        std::cout << "Usage: merge <branch to merge into> <branch to be merged>";
+        return;
+    }
+
+    std::filesystem::path repositoryRoot = findRepositoryRoot(std::filesystem::current_path());
+    std::filesystem::path branchHeads = repositoryRoot / ".minigit" / "refs" / "heads";
+    std::vector<std::filesystem::path> listOfAllBranches;
+
+    
+}
 
 int main(int argc, char* argv[]){
 
@@ -35,6 +46,9 @@ int main(int argc, char* argv[]){
         }
         else if(command == "branch"){
             branch(argv);
+        }
+        else if(command == "merge"){
+            merge(argv);
         }
         else{
             std::cout << "invalid argument: " << command << std::endl;
