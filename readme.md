@@ -23,4 +23,3 @@ main.cpp contains all command line commands parsing, then the proper function is
 
 # Building
 This project uses make.
-make all
