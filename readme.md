@@ -20,3 +20,7 @@ Every file is stored as a blob and every folder stored as a tree, these follow t
 
 # Code structure
 main.cpp contains all command line commands parsing, then the proper function is called for each command (usually all code for that command is in the same file)
+
+# Building
+This project uses make.
+make all
