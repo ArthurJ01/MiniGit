@@ -1,5 +1,5 @@
 # Minigit
-This project is a re-implementation of git, mostly following gits internal structure.
+This project is a recreation of git, mostly following gits internal structure.
 
 # Goals
 This was created as a learning exercise, to enhance my C++ skills as well as help me understand how git works internally, I also tried using a makefile for this project to learn a bit about make. Focus has not been on code structure or performance.
